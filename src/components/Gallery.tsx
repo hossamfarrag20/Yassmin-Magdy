@@ -135,6 +135,14 @@ export function Gallery() {
     return () => clearInterval(interval);
   }, [isDrHovered]);
 
+  useEffect(() => {
+    if (selectedPainting === null) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedPainting]);
+
   return (
     <>
       <section
@@ -229,7 +237,7 @@ export function Gallery() {
                       src={selectedPainting.image}
                       alt={selectedPainting.title}
                       loading="lazy"
-                      className="w-full h-auto rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
+                      className="w-full select-none h-auto rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
                     />
                   </div>
 
@@ -265,9 +273,15 @@ export function Gallery() {
                       </div>
                     </div>
 
-                    <p className="text-gray-700 dark:text-gray-500 leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-500 leading-relaxed mb-8">
                       {selectedPainting.description}
                     </p>
+                    <button
+                      onClick={() => setSelectedPainting(null)}
+                      className="absolute bottom-3 block lg:hidden right-1/2 z-10 py-2 transform translate-x-1/2  rounded-2xl text-white px-4 bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors border border-white/20 dark:border-gray-700/20"
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
               </div>

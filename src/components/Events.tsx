@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import useEmblaCarousel from "embla-carousel-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -45,6 +46,46 @@ export function Events() {
 
   // Modal state
   const [modalImg, setModalImg] = useState<string | null>(null);
+  // Embla carousel
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    slidesToScroll: 1,
+    align: "start",
+  });
+
+  // زرار previous/next state
+  const [isPrevEnabled, setPrevEnabled] = useState(false);
+  const [isNextEnabled, setNextEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setPrevEnabled(emblaApi.canScrollPrev());
+      setNextEnabled(emblaApi.canScrollNext());
+    };
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => {
+      if (emblaApi) emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi]);
+
+  // Arrow navigation handlers
+  const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
+  const scrollNext = () => emblaApi && emblaApi.scrollNext();
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") scrollNext();
+      if (e.key === "ArrowLeft") scrollPrev();
+      if (e.key === "Escape") setModalImg(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [emblaApi]);
 
   // Drag-to-scroll state
   const isDragging = useRef(false);
@@ -160,33 +201,6 @@ export function Events() {
     });
   }, []);
 
-  // True horizontal scroll hijack using GSAP ScrollTrigger
-  useEffect(() => {
-    const section = sectionRef.current;
-    const gallery = galleryRef.current;
-    if (!section || !gallery) return;
-    const totalWidth = gallery.scrollWidth;
-    const viewportWidth = window.innerWidth;
-    const scrollLength = totalWidth - viewportWidth;
-    gsap.to(gallery, {
-      x: () => `-${scrollLength}`,
-      ease: "none",
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: () => `+=${scrollLength}`,
-        scrub: true,
-        pin: true,
-        pinSpacing: true,
-        anticipatePin: 1,
-      },
-    });
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-      gsap.set(gallery, { clearProps: "x" });
-    };
-  }, []);
-
   return (
     <>
       <section
@@ -233,50 +247,93 @@ export function Events() {
           ))}
         </div>
         {/* Sticky Heading */}
-        <div className="sticky top-0 z-20 flex justify-center mb-8">
+        <div className="sticky top-0 z-20 flex justify-center mb-8 ">
           <h2 className="text-3xl md:text-4xl font-bold text-center  px-8 py-4 ">
             Last Event Highlights
           </h2>
         </div>
         <div className="w-24 h-1 hero-shimmer-line mx-auto mb-8" />
-        {/* Horizontal Scroll Gallery */}
-        <div
-          ref={galleryRef}
-          className="relative flex gap-8 px-12 md:px-24 h-[420px] md:h-[520px] items-center w-max z-10 cursor-grab select-none"
-          style={{ minWidth: "100vw" }}
-        >
-          {eventImages.map((img, i) => (
-            <div
-              key={i}
-              className={`event-card relative bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm rounded-xl shadow-2xl border-2 border-white/20 dark:border-gray-700/20 flex items-center justify-center ${img.size} h-[260px] md:h-[340px] transition-transform duration-500 hover:scale-105 hover:rotate-1 cursor-pointer`}
-              style={{
-                transform: `rotate(${img.rotate})`,
-              }}
-              onClick={() => setModalImg(img.src)}
+        {/* Slider Controls */}
+        <div className="flex justify-center items-center gap-4 mb-4 ">
+          <button
+            className="bg-white/70 dark:bg-gray-800/70 hover:bg-white/90 dark:hover:bg-gray-800/90 shadow-lg border border-white/20 dark:border-gray-700/20 rounded-full p-2"
+            onClick={scrollPrev}
+            aria-label="Previous"
+            disabled={!isPrevEnabled}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
             >
-              <img
-                src={img.src}
-                alt={`Event photo ${i + 1}`}
-                loading="lazy"
-                className="object-cover w-full h-full rounded-xl pointer-events-none"
-                draggable={false}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
               />
-            </div>
-          ))}
-          {/* View Full Album Button */}
-          <div className="flex flex-col items-center justify-center min-w-[200px]">
-            <button className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 dark:from-pink-600 dark:via-purple-600 dark:to-blue-600 text-white font-bold py-4 px-8 rounded-xl shadow-xl text-lg hover:scale-105 transition-all">
-              <a
-                href="https://www.instagram.com/farrag.yasmen/"
-                target="_blank"
+            </svg>
+          </button>
+          <button
+            className="bg-white/70 dark:bg-gray-800/70 hover:bg-white/90 dark:hover:bg-gray-800/90 shadow-lg border border-white/20 dark:border-gray-700/20 rounded-full p-2"
+            onClick={scrollNext}
+            aria-label="Next"
+            disabled={!isNextEnabled}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+        {/* Embla Carousel */}
+        <div className="overflow-hidden px-12" ref={emblaRef}>
+          <div className="flex gap-8 px-12 md:px-24 h-[420px] md:h-[520px] items-center">
+            {eventImages.map((img, i) => (
+              <div
+                key={i}
+                className={`event-card select-none flex-shrink-0 relative bg-white/10 dark:bg-gray-800/10 backdrop-blur-sm rounded-xl shadow-2xl border-2 border-white/20 dark:border-gray-700/20 flex items-center justify-center ${img.size} h-[260px] md:h-[340px] transition-transform duration-500 hover:scale-105 hover:rotate-1 cursor-pointer`}
+                style={{
+                  minWidth: 260, // أو استخدم minWidth مناسب لحجم الكارت
+                  maxWidth: 350,
+                  transform: `rotate(${img.rotate})`,
+                }}
+                onClick={() => setModalImg(img.src)}
               >
-                View Full Album
-              </a>
-            </button>
+                <img
+                  src={img.src}
+                  alt={`Event photo ${i + 1}`}
+                  loading="lazy"
+                  className="object-cover w-full h-full rounded-xl pointer-events-none"
+                  draggable={false}
+                />
+              </div>
+            ))}
+            {/* View Full Album Button */}
+            <div className="flex flex-col items-center justify-center min-w-[200px] me-12">
+              <button className="bg-gradient-to-r whitespace-nowrap from-pink-500 via-purple-500 to-blue-500 dark:from-pink-600 dark:via-purple-600 dark:to-blue-600 text-white font-bold py-4 px-8 rounded-xl shadow-xl text-lg hover:scale-105 transition-all">
+                <a
+                  href="https://www.instagram.com/farrag.yasmen/"
+                  target="_blank"
+                >
+                  View Full Album
+                </a>
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* Custom Scrollbar */}
         <style>{`
         section::-webkit-scrollbar { height: 12px; background: #18181b; }
         section::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 6px; }
@@ -285,10 +342,10 @@ export function Events() {
         .animate-fadein { animation: fadein 0.2s; }
         @keyframes zoomin { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .animate-zoomin { animation: zoomin 0.25s; }
-      `}</style>
+        `}</style>
       </section>
+      {/* Modal */}
       <div className="">
-        {/* Modal */}
         {modalImg && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadein"

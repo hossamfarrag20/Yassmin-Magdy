@@ -4,18 +4,18 @@ import gsap from "gsap";
 import img1 from "@/assets/students/500378176_1403848591786886_8946440781533982411_n.jpg";
 import img2 from "@/assets/students/500025973_1403848345120244_7074424651415094527_n.jpg";
 import img3 from "@/assets/students/501574664_1403848298453582_4404519424533006083_n.jpg";
-import img4 from "@/assets/students/499916060_1403848265120252_8369344639305039859_n.jpg";
+import img9 from "@/assets/students/499916060_1403848265120252_8369344639305039859_n.jpg";
 import img5 from "@/assets/students/499861583_1403848218453590_3309864906910899587_n.jpg";
 import img6 from "@/assets/students/499931625_1403848498453562_5121781272412431123_n.jpg";
 import img7 from "@/assets/students/499928216_1403848458453566_8370494025584536237_n.jpg";
 import img8 from "@/assets/students/500342821_1403849031786842_6583826293559132897_n.jpg";
-import img9 from "@/assets/students/500911599_1403848888453523_8694771086495121931_n.jpg";
+import img4 from "@/assets/students/500911599_1403848888453523_8694771086495121931_n.jpg";
 import { AnimatedBackground } from "./AnimatedBackground";
 
 const studentImages = [
-  { src: img1, top: "10%", left: "8%", rotate: "-8deg", size: "w-40 md:w-56" },
-  { src: img2, top: "20%", left: "35%", rotate: "6deg", size: "w-48 md:w-64" },
-  { src: img3, top: "55%", left: "15%", rotate: "12deg", size: "w-36 md:w-52" },
+  { src: img1, top: "10%", left: "6%", rotate: "-8deg", size: "w-40 md:w-56" },
+  { src: img2, top: "10%", left: "35%", rotate: "6deg", size: "w-48 md:w-64" },
+  { src: img3, top: "55%", left: "5%", rotate: "12deg", size: "w-36 md:w-52" },
   {
     src: img4,
     top: "60%",
@@ -23,17 +23,17 @@ const studentImages = [
     rotate: "-10deg",
     size: "w-40 md:w-56",
   },
-  { src: img5, top: "8%", left: "65%", rotate: "4deg", size: "w-44 md:w-60" },
+  { src: img5, top: "0%", left: "55%", rotate: "4deg", size: "w-44 md:w-60" },
   { src: img6, top: "35%", left: "75%", rotate: "-6deg", size: "w-36 md:w-48" },
-  { src: img7, top: "40%", left: "50%", rotate: "8deg", size: "w-40 md:w-56" },
+  { src: img7, top: "90%", left: "5%", rotate: "8deg", size: "w-40 md:w-56" },
   {
     src: img8,
     top: "70%",
-    left: "40%",
-    rotate: "-12deg",
+    left: "60%",
+    rotate: "-8deg",
     size: "w-44 md:w-60",
   },
-  { src: img9, top: "65%", left: "80%", rotate: "10deg", size: "w-40 md:w-56" },
+  { src: img9, top: "65%", left: "20%", rotate: "10deg", size: "w-40 md:w-56" },
 ];
 
 export function StudentsGallery() {
@@ -116,11 +116,16 @@ export function StudentsGallery() {
   // Close modal on Escape
   useEffect(() => {
     if (modalIdx === null) return;
+    // منع تمرير الصفحة عند فتح المودال
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setModalIdx(null);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
   }, [modalIdx]);
 
   return (
@@ -165,7 +170,7 @@ export function StudentsGallery() {
             src={img.src}
             alt={`Student artwork ${i + 1}`}
             loading="lazy"
-            className={`student-img absolute rounded-xl shadow-lg ${img.size} transition-transform duration-500 cursor-pointer`}
+            className={`student-img select-none absolute rounded-xl shadow-lg ${img.size} transition-transform duration-500 cursor-pointer`}
             style={{
               top: img.top,
               left: img.left,
@@ -181,18 +186,41 @@ export function StudentsGallery() {
       {/* Modal */}
       {modalIdx !== null && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center"
           onClick={() => setModalIdx(null)}
         >
-          <img
-            ref={modalImgRef}
-            src={studentImages[modalIdx].src}
-            alt="Student artwork enlarged"
-            loading="lazy"
-            className="max-h-[80vh] max-w-[90vw] rounded-2xl shadow-2xl border-4 border-white object-contain"
-            style={{ zIndex: 1000 }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="relative">
+            <img
+              ref={modalImgRef}
+              src={studentImages[modalIdx].src}
+              alt="Student artwork enlarged"
+              loading="lazy"
+              className="max-h-[80vh] select-none max-w-[90vw] rounded-2xl shadow-2xl border-4 border-white object-contain"
+              style={{ zIndex: 1000 }}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 transition"
+              onClick={() => setModalIdx(null)}
+              aria-label="Close"
+              style={{ zIndex: 1100 }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
     </section>
